@@ -7,7 +7,7 @@ namespace Stos
     {
         static void Main(string[] args)
         {
-            StosWTablicy<string> s = new StosWTablicy<string>(2);
+            /*StosWTablicy<string> s = new StosWTablicy<string>(2);
             s.Push("km");
             s.Push("aa");
             s.Push("xx");
@@ -43,7 +43,13 @@ namespace Stos
             foreach (var x in l)
             {
                 Console.WriteLine(x);
-            }
+            }*/
+            var stos = new StosWLiscie<char>();
+            char e = 'a';
+
+            Console.WriteLine(stos.IsEmpty);
+            stos.Push(e);
+            Console.WriteLine(e + " == " + stos.Peek);
         }
     }
 }

@@ -158,7 +158,9 @@ namespace UnitTestProjectStos
         public void Peek_ZwracaOstatnioWstawionyElement()
         {
             stos = new StosWLiscie<char>();
-            char e = RandomElement;   
+            char e = RandomElement;
+
+            stos.Push(e);
 
             Assert.AreEqual(stos.Peek, e);
         }

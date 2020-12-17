@@ -3,36 +3,43 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace ImplementacjaStosu
 {
     public class StosWLiscie<T> : IStos<T>, IEnumerable<T>
     {
-        private class Node<T>
+        public class Node<T>
         {
             private T data;
-            public T Data { get; }
+            public T Data { get {return data;} }
+
             Node<T> prev;
-            public Node<T> Prev { get; set; }
+            public Node<T> Prev { get { return prev; } set { prev = value; } }
+
             Node<T> next;
-            public Node<T> Next { get; set; }
+            public Node<T> Next { get { return next; } set { next = value; } }
 
             public Node(T data)
             {
                 this.data = data;
             }
 
-            public Node(T data, Node<T> next)
+            public bool hasNext()
             {
-                this.data = data;
-                this.next = next;
+                return this.next != null;
+            }
+
+            public bool hasPrev()
+            {
+                return this.prev != null;
             }
         }
 
         private Node<T> first;
         private Node<T> last;
 
-        private int count = 0;
+        private int count;
         public int Count => count;
 
         public StosWLiscie()
@@ -45,60 +52,94 @@ namespace ImplementacjaStosu
 
         public T Pop()
         {
-            if (IsEmpty)
-                throw new StosEmptyException();
-
-            var data = last.Data;
-            last = last.Next;
+            if (IsEmpty) throw new StosEmptyException();
+            Node<T> popNode = last;
+            if (count == 1) first = last = null;
+            if (last.Prev == first) last = first;
+            else
+            {
+                var node = last.Prev;
+                node.Next = null;
+                last = node;
+            }
             count--;
-
-            return data;
+            return popNode.Data;
         }
 
         public void Push(T value)
         {
-            if (IsEmpty)
-            {
-                last = new Node<T>(value);
-                count++;
-            }
+            Node<T> node = new Node<T>(value);
+            if (IsEmpty) first = node;
             else
             {
-                last = new Node<T>(value, last);
-                count++;
-            }           
+                last.Next = node;
+                node.Prev = last;
+            }
+            last = node;
+            count++;
         }
 
         //public T[] ToArray<T>()
         //{
-            
+        //    T[] temp = new T[count];
+        //    int index = 0;
+        //    var node = first;
+        //    while (node != null)
+        //    {
+        //        temp[index] = node;
+        //        node = node.Next;
+        //    }
+
+        //    return temp;
         //}
 
-        public void TrimExcess()
+        public Node<T>[] ToArray()
         {
-            int emptyElement = 0;
-            int size = count;
+            // You´ve got pre-computed count - let´s use it
+            Node<T>[] result = new Node<T>[count];
 
-        }       
-        
+            Node<T> node = first;
+
+            for (int i = 0; i < result.Length; ++i)
+            {
+                result[i] = node;
+                node = node.Next;
+            }
+
+            return result;
+        }
+
+        public void TrimExcess() => throw new NotImplementedException();
+
         public bool IsEmpty => Count == 0;
 
         T IEnumerator<T>.Current => throw new NotImplementedException();
 
         object IEnumerator.Current => throw new NotImplementedException();
 
-        public T this[int index]
+        public T this[int index] => readPosition(index);
+
+        private T readPosition(int index)
         {
-            get { return Get(index); }
+            Node<T> current = first;
+            int position = 0;
+            while (current.hasNext())
+            {
+                if (position == index) return current.Data;
+                position++;
+                current = current.Next;
+            }
+            if (position == index) return current.Data;
+            throw new IndexOutOfRangeException();
         }
 
         public IEnumerator<T> GetEnumerator()
         {
             Node<T> node = first;
-            while (node != null)
+            while (node.hasNext())
             {
                 yield return node.Data;
-                node = node.Prev;
+                node = node.Next;
             } 
         }
 
@@ -118,33 +159,6 @@ namespace ImplementacjaStosu
             return GetEnumerator();
         }
 
-        private T Get(int index)
-        {
-            Node<T> current;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException();
-
-            if (index >= Count)
-                index = Count - 1;
-
-            if (index < Count)
-            {
-                current = first;
-
-                for (int i = 0; i < index; i++)
-                    current = current.Next;
-            }
-            else
-            {
-                current = last;
-                for (int i = 0; i > index; i--)
-                {
-                    current = current.Prev;
-                }
-            }
-                
-            return current.Data;
-        }
 
         void IStos<T>.Clear()
         {
